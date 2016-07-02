@@ -1,9 +1,13 @@
 import glob
+import json
 import os
 
 def main():
     datapath = 'data/merged_*.csv'
     data_types = get_data_types(glob.glob(datapath))
+    with open('data_types.txt', 'w') as f:
+        f.write(json.dumps(data_types))
+        f.close()
 
 #Returns a list of tuples containing indices that have data, the data type, and the index.
 def get_data_types(data_path):
