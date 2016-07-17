@@ -16,40 +16,35 @@ def main():
     populate_database()
 
 def build_database():
-    build_college_table()
+    build_table('College')
     build_year_tables()
-
-def build_college_table():
-    cur.execute('''
-        CREATE TABLE IF NOT EXISTS College (
-        college_id INTEGER PRIMARY KEY AUTOINCREMENT
-        )''')
-    for data_type in data_types:
-        if data_type[2] < 36:
-            try:
-                cur.execute(
-                    '''ALTER TABLE College ADD COLUMN %s %s'''
-                    % (sanitize(data_type[0]), sanitize(data_type[1])))
-            except sqlite3.OperationalError:
-                pass
 
 def build_year_tables():
     #This is hardcoded for now, but can be taken from input
     for year in range(1999, 2014):
         table_name = str(year)
-        cur.execute(
-            '''CREATE TABLE IF NOT EXISTS "%s" (
-            college_id INTEGER PRIMARY KEY
-            )''' % (sanitize(table_name)))
-        for data_type in data_types:
-            if data_type[2] >= 36:
-                try:
-                    cur.execute(
-                        '''ALTER TABLE "%s" ADD COLUMN %s %s'''
-                        % (sanitize(table_name), sanitize(data_type[0]),
-                        sanitize(data_type[1])))
-                except sqlite3.OperationalError:
-                    pass
+        build_table(table_name)
+
+def build_table(table_name):
+    lower_limit = 1 if table_name == 'College' else 37
+    upper_limit = 36 if table_name == 'College' else 1728
+    autoincrement = "AUTOINCREMENT" if table_name == 'College' else ''
+
+    cur.execute('''
+        CREATE TABLE IF NOT EXISTS "%s" (
+        college_id INTEGER PRIMARY KEY %s
+        )''' % (sanitize(table_name), autoincrement))
+
+    for data_type in data_types:
+        if data_type[2] > upper_limit: break
+        if data_type[2] < lower_limit: continue
+        try:
+            cur.execute(
+                '''ALTER TABLE "%s" ADD COLUMN %s %s'''
+                % (sanitize(table_name), sanitize(data_type[0]),
+                sanitize(data_type[1])))
+        except sqlite3.OperationalError:
+            pass
 
 '''
 Needed for table names, column names, and data types that cannot be
