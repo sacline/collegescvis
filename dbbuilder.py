@@ -21,9 +21,9 @@ def build_database():
 
 def build_year_tables():
     #This is hardcoded for now, but can be taken from input
-    for year in range(1999, 2014):
-        table_name = str(year)
-        build_table(table_name)
+    build_table('1999')
+    for year in range(2000, 2014):
+        copy_table('1999', str(year))
 
 def build_table(table_name):
     lower_limit = 1 if table_name == 'College' else 37
@@ -56,6 +56,15 @@ def sanitize(string):
         if char in string:
             raise ValueError('Table input contains ' + badchar)
     return string
+
+def copy_table(source_table, target_table):
+    cur.execute(
+        '''SELECT sql FROM sqlite_master WHERE type='table' AND name ="%s"
+        ''' % (sanitize(source_table)))
+    statement = cur.fetchone()[0]
+    new_statement = statement.replace(
+        sanitize(source_table), sanitize(target_table), 1)
+    cur.execute(new_statement)
 
 def populate_database():
     cur.execute('''''')
