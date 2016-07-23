@@ -1,21 +1,42 @@
+"""Examines Scorecard raw data to determine its characteristics.
+
+In order to build a database, information is needed about the type of data in
+the Scorecard .csv files. This script examines the data and extracts the
+essential information: the name of the data category, the type of data, and the
+index it is located at in the raw data files. This information is then saved in
+JSON format.
+"""
 import glob
 import json
-import os
 
 def main():
-    datapath = 'data/merged_*.csv'
-    data_types = get_data_types(glob.glob(datapath))
-    with open('data_types.txt', 'w') as f:
-        f.write(json.dumps(data_types))
-        f.close()
+    """Starting point for the decoder script."""
+    data_path = 'data/merged_*.csv'
+    data_types = get_data_types(glob.glob(data_path))
+    with open('data_types.txt', 'w') as data_file:
+        data_file.write(json.dumps(data_types))
+        data_file.close()
 
-#Returns a list of tuples containing indices that have data, the data type, and the index.
 def get_data_types(data_path):
+    """Returns a list of data-containing indices, the data type, and the index.
+
+    Each input file is read to see if there is some valid data for each
+    category within the College Scorecard raw data. If a category has no valid
+    data, it is ignored and not included in the list.
+
+    Args:
+        data_path: path to the folder containing Scorecard data files.
+    Returns:
+        A list of tuples containing the name of the data, the type, and the
+        index. The list is returned sorted by the index. An example is below:
+
+        [ ('UNITID', 'INTEGER', 0), ('OPEID', 'TEXT', 1), ... ]
+    """
     tuple_list = []
     for input_file in data_path:
         print(input_file)
-        with open(input_file, 'r', encoding = 'latin-1') as f:
-            lines = f.readlines()
+        with open(input_file, 'r', encoding='latin-1') as data_file:
+            lines = data_file.readlines()
             data_list = [[] for count in lines[0].split(',')]
             for line in lines:
                 index = 0
@@ -36,12 +57,17 @@ def get_data_types(data_path):
                     data_type = find_type(data_list[index])
                 tup = (data_list[index][0], data_type, index)
                 if tup not in tuple_list: tuple_list.append(tup)
-    return sorted(tuple_list, key = lambda x: x[2])
+    return sorted(tuple_list, key=lambda x: x[2])
 
-#Accepts a data entry containing [Category, value1, value2...]
-#Returns counts of real values, PrivacySuppressed values, and Null values.
 def read_values(entry):
-    counts = [0, 0, 0] #values, privacy, null
+    """Creates a count of valid data within a Scorecard entry.
+
+    Args:
+        entry: list of Scorecard data - [Category, value1, value2, ...]
+    Returns:
+        List of counts of 'NULL', 'PrivacySuppressed', and valid data.
+    """
+    counts = [0, 0, 0]
     for value in entry[1:]:
         if value == 'NULL':
             counts[2] += 1
@@ -51,11 +77,16 @@ def read_values(entry):
             counts[0] += 1
     return counts
 
-#Accepts a list of data [CATEGORY, value1, value2...]
-#Returns a string based on the type of data (TEXT, INTEGER, or REAL)
-def find_type(data_entry):
+def find_type(entry):
+    """Returns a data type based on the data in the entry.
+
+    Args:
+        entry: list of Scorecard data - [Category, value1, value2, ...]
+    Returns:
+        String description of the data type - 'INTEGER', 'REAL', or 'TEXT'.
+    """
     data_type = 'INTEGER'
-    for value in data_entry[1:]:
+    for value in entry[1:]:
         if value in ('NULL', 'PrivacySuppressed'):
             continue
         else:
