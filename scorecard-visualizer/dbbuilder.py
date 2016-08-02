@@ -10,24 +10,43 @@ Functions:
 import json
 import sqlite3
 
-
 DATA_TYPES = None
-DB_NAME = 'college-scorecard.sqlite'
+DB_PATH = 'college-scorecard.sqlite'
 CONN = None
 CUR = None
 
 def main():
-    """Initiates database-building functions."""
+    """Builds a database using data type input."""
     global DATA_TYPES
     with open('data_types.txt', 'r') as data_file:
         DATA_TYPES = json.loads(data_file.readline())
 
     global CONN
-    CONN = sqlite3.connect(DB_NAME)
+    CONN = sqlite3.connect(DB_PATH)
     global CUR
-    CUR = CONN.CURsor()
+    CUR = CONN.cursor()
 
     build_database()
+
+def initialize_database(db_path, data_types_path):
+    """Sets the variables needed to build the database.
+
+    Args:
+        db_path: path to the database file to be created.
+        data_types_path: path to the existing data types file generated
+            by the decoder script.
+    """
+    global DB_PATH
+    DB_PATH = db_path
+
+    global DATA_TYPES
+    with open(data_types_path, 'r') as data_file:
+        DATA_TYPES = json.loads(data_file.readline())
+
+    global CONN
+    CONN = sqlite3.connect(DB_PATH)
+    global CUR
+    CUR = CONN.cursor()
 
 def build_database():
     """Executes the functions that create the database tables."""

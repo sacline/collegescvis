@@ -17,6 +17,18 @@ def main():
         data_file.write(json.dumps(data_types))
         data_file.close()
 
+def write_data_types(data_path, dest_path):
+    """Writes the data index information in JSON format to a target file.
+
+    Args:
+        data_path: path to the folder containing Scorecard data files.
+        dest_path: path to the destination file.
+    """
+    data_types = get_data_types(glob.glob(data_path))
+    with open(dest_path, 'w') as data_file:
+        data_file.write(json.dumps(data_types))
+        data_file.close()
+
 def get_data_types(data_path):
     """Returns a list of data-containing indices, the data type, and the index.
 
