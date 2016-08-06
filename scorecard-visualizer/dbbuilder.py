@@ -15,19 +15,6 @@ DB_PATH = 'college-scorecard.sqlite'
 CONN = None
 CUR = None
 
-def main():
-    """Builds a database using data type input."""
-    global DATA_TYPES
-    with open('data_types.txt', 'r') as data_file:
-        DATA_TYPES = json.loads(data_file.readline())
-
-    global CONN
-    CONN = sqlite3.connect(DB_PATH)
-    global CUR
-    CUR = CONN.cursor()
-
-    build_database()
-
 def initialize_database(db_path, data_types_path):
     """Sets the variables needed to build the database.
 
@@ -130,6 +117,3 @@ def copy_table(source_table, target_table):
     new_statement = statement.replace(
         sanitize(source_table), sanitize(target_table), 1)
     CUR.execute(new_statement)
-
-if __name__ == '__main__':
-    main()

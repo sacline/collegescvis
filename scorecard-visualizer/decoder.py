@@ -9,14 +9,6 @@ JSON format.
 import glob
 import json
 
-def main():
-    """Starting point for the decoder script."""
-    data_path = 'data/merged_*.csv'
-    data_types = get_data_types(glob.glob(data_path))
-    with open('data_types.txt', 'w') as data_file:
-        data_file.write(json.dumps(data_types))
-        data_file.close()
-
 def write_data_types(data_path, dest_path):
     """Writes the data index information in JSON format to a target file.
 
@@ -112,6 +104,3 @@ def find_type(entry):
                     str(value)
                     data_type = 'TEXT'
     return data_type
-
-if __name__ == "__main__":
-    main()

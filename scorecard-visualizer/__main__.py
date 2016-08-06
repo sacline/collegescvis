@@ -1,12 +1,11 @@
 """Entry point for the College Scorecard Visualizer."""
-import glob
-import json
 import os
 import time
 import dbbuilder
 import decoder
 
 def main():
+    """Calls modules to build database and visualize data."""
     print('Beginning College Scorecard Visualizer...')
     print('Checking database...')
 
