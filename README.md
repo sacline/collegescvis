@@ -1,4 +1,4 @@
-# scorecard-visualizer
+# collegescvis
 
 ## Tool for visualizing College Scorecard data
 
