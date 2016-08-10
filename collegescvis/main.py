@@ -24,7 +24,7 @@ def main():
     db_path = os.path.join(
         os.path.dirname(__file__), os.pardir, 'data', 'database',
         'college-scorecard.sqlite')
-    print(db_path)
+    print('Database location:', db_path)
     if os.path.isfile(db_path):
         print('Database found.')
     else:
