@@ -38,7 +38,7 @@ def get_data_types(data_path):
     """
     tuple_list = []
     for input_file in data_path:
-        print(input_file)
+        print('Reading...', input_file)
         with open(input_file, 'r', encoding='latin-1') as data_file:
             lines = data_file.readlines()
             data_list = [[] for count in lines[0].split(',')]
@@ -69,7 +69,7 @@ def read_values(entry):
     Args:
         entry: list of Scorecard data - [Category, value1, value2, ...]
     Returns:
-        List of counts of 'NULL', 'PrivacySuppressed', and valid data.
+        List of counts of valid data, 'PrivacySuppressed', and 'NULL' values.
     """
     counts = [0, 0, 0]
     for value in entry[1:]:
