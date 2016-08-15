@@ -10,13 +10,13 @@ import glob
 import json
 
 def validate_data_path(data_path):
-    """Raises exceptions for invalid raw data paths
+    """Raises exceptions for invalid raw data paths.
 
     Args:
         data_path: path to the folder containing Scorecard data files.
     Raises:
-        TypeError: The data_path was not correctly formatted as a string.
-        FileNotFoundError: The glob of the data path was empty.
+        TypeError: The data path was not correctly formatted as a string.
+        FileNotFoundError: The data path glob was empty.
     """
     if not isinstance(data_path, str):
         raise TypeError('Data path is not a string')
@@ -78,6 +78,23 @@ def get_data_types(data_path):
                 if tup not in tuple_list: tuple_list.append(tup)
     return sorted(tuple_list, key=lambda x: x[2])
 
+def validate_scorecard_entry(entry):
+    """Checks a Scorecard entry, raising an exception if data is invalid.
+
+    Args:
+        entry: list of Scorecard data - [Category, value1, value2, ...]
+    Raises:
+        TypeError: The entry was or contained an invalid data type.
+        ValueError: The entry was an empty list containing no data.
+    """
+    if not isinstance(entry, list):
+        raise TypeError('Scorecard entry not formatted as a list.')
+    if not entry:
+        raise ValueError('Scorecard data entry is empty.')
+    for value in entry:
+        if not isinstance(value, str):
+            raise TypeError('Scorecard entry contains non-string value.')
+
 def read_values(entry):
     """Creates a count of valid data within a Scorecard entry.
 
@@ -86,6 +103,7 @@ def read_values(entry):
     Returns:
         List of counts of valid data, 'PrivacySuppressed', and 'NULL' values.
     """
+    validate_scorecard_entry(entry)
     counts = [0, 0, 0]
     for value in entry[1:]:
         if value == 'NULL':
