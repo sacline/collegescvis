@@ -122,6 +122,7 @@ def find_type(entry):
     Returns:
         String description of the data type - 'INTEGER', 'REAL', or 'TEXT'.
     """
+    validate_scorecard_entry(entry)
     data_type = 'INTEGER'
     for value in entry[1:]:
         if value in ('NULL', 'PrivacySuppressed'):
