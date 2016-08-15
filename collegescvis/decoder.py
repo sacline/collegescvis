@@ -9,6 +9,20 @@ JSON format.
 import glob
 import json
 
+def validate_data_path(data_path):
+    """Raises exceptions for invalid raw data paths
+
+    Args:
+        data_path: path to the folder containing Scorecard data files.
+    Raises:
+        TypeError: The data_path was not correctly formatted as a string.
+        FileNotFoundError: The glob of the data path was empty.
+    """
+    if not isinstance(data_path, str):
+        raise TypeError('Data path is not a string')
+    if not glob.glob(data_path):
+        raise FileNotFoundError('No raw data files found')
+
 def write_data_types(data_path, dest_path):
     """Writes the data index information in JSON format to a target file.
 
@@ -16,6 +30,7 @@ def write_data_types(data_path, dest_path):
         data_path: path to the folder containing Scorecard data files.
         dest_path: path to the destination file.
     """
+    validate_data_path(data_path)
     data_types = get_data_types(glob.glob(data_path))
     with open(dest_path, 'w') as data_file:
         data_file.write(json.dumps(data_types))
