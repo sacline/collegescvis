@@ -5,6 +5,14 @@ the Scorecard .csv files. This script examines the data and extracts the
 essential information: the name of the data category, the type of data, and the
 index it is located at in the raw data files. This information is then saved in
 JSON format.
+
+Functions:
+    validate_data_path(data_path): raises exceptions for invalid data paths.
+    write_data_types(data_path, dest_path): writes data index info to file.
+    get_data_types(data_path): finds valid data and their types.
+    validate_scorecard_entry(entry): raises an exception if entry is invalid.
+    read_values(entry): counts valid data within a scorecard entry.
+    find_type(entry): returns a data type based on the entry.
 """
 import glob
 import json
@@ -115,7 +123,7 @@ def read_values(entry):
     return counts
 
 def find_type(entry):
-    """Returns a data type based on the data in the entry.
+    """Returns a data type based on the entry.
 
     Args:
         entry: list of Scorecard data - [Category, value1, value2, ...]
