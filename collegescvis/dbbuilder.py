@@ -1,22 +1,23 @@
 """Builds the Scorecard database structure and populates it with data.
 
 Functions:
+    initialize_database(db_path, data_types_path): sets necessary db vars.
     build_database(): calls functions to build tables and insert data.
     build_year_tables(): creates year tables.
     build_table(table_name): creates tables and adds appropriate columns.
     sanitize(string): checks strings for characters that could harm database.
-    copy_table(source_table, target_table): makes a copy of an existing table.
+    copy_table(source_table, target_table): copies an existing table.
 """
 import json
 import sqlite3
 
 DATA_TYPES = None
-DB_PATH = 'college-scorecard.sqlite'
+DB_PATH = None
 CONN = None
 CUR = None
 
 def initialize_database(db_path, data_types_path):
-    """Sets the variables needed to build the database.
+    """Sets variables needed to build the database.
 
     Args:
         db_path: path to the database file to be created.
