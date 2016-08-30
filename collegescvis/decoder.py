@@ -1,4 +1,4 @@
-"""Examines Scorecard raw data to determine its characteristics.
+"""Examine Scorecard raw data to determine its characteristics.
 
 In order to build a database, information is needed about the type of data in
 the Scorecard .csv files. This script examines the data and extracts the
@@ -7,24 +7,26 @@ index it is located at in the raw data files. This information is then saved in
 JSON format.
 
 Functions:
-    validate_data_path(data_path): raises exceptions for invalid data paths.
-    write_data_types(data_path, dest_path): writes data index info to file.
-    get_data_types(data_path): finds valid data and their types.
-    validate_scorecard_entry(entry): raises an exception if entry is invalid.
-    read_values(entry): counts valid data within a scorecard entry.
-    find_type(entry): returns a data type based on the entry.
+    validate_data_path(data_path): Raise exceptions for invalid data paths.
+    write_data_types(data_path, dest_path): Write data index info to file.
+    get_data_types(data_path): Find valid data and their types.
+    validate_scorecard_entry(entry): Raise an exception if entry is invalid.
+    read_values(entry): Count valid data within a scorecard entry.
+    find_type(entry): Return a data type based on the entry.
 """
 import glob
 import json
 
+
 def validate_data_path(data_path):
-    """Raises exceptions for invalid raw data paths.
+    """Raise exceptions for invalid raw data paths.
 
     Args:
-        data_path: path to the folder containing Scorecard data files.
+        data_path: Path to the folder containing Scorecard data files.
+
     Raises:
-        TypeError: The data path was not correctly formatted as a string.
-        FileNotFoundError: The data path glob was empty.
+        TypeError: If the data path was not correctly formatted as a string.
+        FileNotFoundError: If the data path glob was empty.
     """
     if not isinstance(data_path, str):
         raise TypeError('Data path is not a string')
@@ -32,11 +34,11 @@ def validate_data_path(data_path):
         raise FileNotFoundError('No raw data files found')
 
 def write_data_types(data_path, dest_path):
-    """Writes the data index information in JSON format to a target file.
+    """Write the data index information in JSON format to a target file.
 
     Args:
-        data_path: path to the folder containing Scorecard data files.
-        dest_path: path to the destination file.
+        data_path: Path to the folder containing Scorecard data files.
+        dest_path: Path to the destination file.
     """
     validate_data_path(data_path)
     data_types = get_data_types(glob.glob(data_path))
@@ -45,14 +47,15 @@ def write_data_types(data_path, dest_path):
         data_file.close()
 
 def get_data_types(data_path):
-    """Returns a list of data-containing indices, the data type, and the index.
+    """Return a list of data-containing indices, the data type, and the index.
 
     Each input file is read to see if there is some valid data for each
     category within the College Scorecard raw data. If a category has no valid
     data, it is ignored and not included in the list.
 
     Args:
-        data_path: path to the folder containing Scorecard data files.
+        data_path: Path to the folder containing Scorecard data files.
+
     Returns:
         A list of tuples containing the name of the data, the type, and the
         index. The list is returned sorted by the index. An example is below:
@@ -87,13 +90,14 @@ def get_data_types(data_path):
     return sorted(tuple_list, key=lambda x: x[2])
 
 def validate_scorecard_entry(entry):
-    """Checks a Scorecard entry, raising an exception if data is invalid.
+    """Check a Scorecard entry, raising an exception if data is invalid.
 
     Args:
-        entry: list of Scorecard data - [Category, value1, value2, ...]
+        entry: List of Scorecard data - [Category, value1, value2, ...]
+
     Raises:
-        TypeError: The entry was or contained an invalid data type.
-        ValueError: The entry was an empty list containing no data.
+        TypeError: If the entry is an invalid data type.
+        ValueError: If the entry is an empty list containing no data.
     """
     if not isinstance(entry, list):
         raise TypeError('Scorecard entry not formatted as a list.')
@@ -104,12 +108,14 @@ def validate_scorecard_entry(entry):
             raise TypeError('Scorecard entry contains non-string value.')
 
 def read_values(entry):
-    """Creates a count of valid data within a Scorecard entry.
+    """Create a count of valid data within a Scorecard entry.
 
     Args:
-        entry: list of Scorecard data - [Category, value1, value2, ...]
+        entry: List of Scorecard data - [Category, value1, value2, ...]
+
     Returns:
-        List of counts of valid data, 'PrivacySuppressed', and 'NULL' values.
+        counts: List of counts of valid data, 'PrivacySuppressed', and 'NULL'
+            values.
     """
     validate_scorecard_entry(entry)
     counts = [0, 0, 0]
@@ -123,12 +129,14 @@ def read_values(entry):
     return counts
 
 def find_type(entry):
-    """Returns a data type based on the entry.
+    """Return a data type based on the entry.
 
     Args:
-        entry: list of Scorecard data - [Category, value1, value2, ...]
+        entry: List of Scorecard data - [Category, value1, value2, ...]
+
     Returns:
-        String description of the data type - 'INTEGER', 'REAL', or 'TEXT'.
+        data_type: String description of the data type - 'INTEGER', 'REAL', or
+            'TEXT'.
     """
     validate_scorecard_entry(entry)
     data_type = 'INTEGER'
