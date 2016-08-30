@@ -7,18 +7,18 @@ index it is located at in the raw data files. This information is then saved in
 JSON format.
 
 Functions:
-    validate_data_path(data_path): Raise exceptions for invalid data paths.
+    _validate_data_path(data_path): Raise exceptions for invalid data paths.
     write_data_types(data_path, dest_path): Write data index info to file.
-    get_data_types(data_path): Find valid data and their types.
-    validate_scorecard_entry(entry): Raise an exception if entry is invalid.
-    read_values(entry): Count valid data within a scorecard entry.
-    find_type(entry): Return a data type based on the entry.
+    _get_data_types(data_path): Find valid data and their types.
+    _validate_scorecard_entry(entry): Raise an exception if entry is invalid.
+    _read_values(entry): Count valid data within a scorecard entry.
+    _find_type(entry): Return a data type based on the entry.
 """
 import glob
 import json
 
 
-def validate_data_path(data_path):
+def _validate_data_path(data_path):
     """Raise exceptions for invalid raw data paths.
 
     Args:
@@ -40,13 +40,13 @@ def write_data_types(data_path, dest_path):
         data_path: Path to the folder containing Scorecard data files.
         dest_path: Path to the destination file.
     """
-    validate_data_path(data_path)
-    data_types = get_data_types(glob.glob(data_path))
+    _validate_data_path(data_path)
+    data_types = _get_data_types(glob.glob(data_path))
     with open(dest_path, 'w') as data_file:
         data_file.write(json.dumps(data_types))
         data_file.close()
 
-def get_data_types(data_path):
+def _get_data_types(data_path):
     """Return a list of data-containing indices, the data type, and the index.
 
     Each input file is read to see if there is some valid data for each
@@ -77,19 +77,19 @@ def get_data_types(data_path):
             good_indices = []
             for data_index in range(len(data_list)):
                 if any(data_index == entry[2] for entry in tuple_list): continue
-                data_counts = read_values(data_list[data_index])
+                data_counts = _read_values(data_list[data_index])
                 if data_counts[0] != 0: good_indices.append(data_index)
             print(len(good_indices))
             for index in good_indices:
                 if index == 6:
                     data_type = 'TEXT'
                 else:
-                    data_type = find_type(data_list[index])
+                    data_type = _find_type(data_list[index])
                 tup = (data_list[index][0], data_type, index)
                 if tup not in tuple_list: tuple_list.append(tup)
     return sorted(tuple_list, key=lambda x: x[2])
 
-def validate_scorecard_entry(entry):
+def _validate_scorecard_entry(entry):
     """Check a Scorecard entry, raising an exception if data is invalid.
 
     Args:
@@ -107,7 +107,7 @@ def validate_scorecard_entry(entry):
         if not isinstance(value, str):
             raise TypeError('Scorecard entry contains non-string value.')
 
-def read_values(entry):
+def _read_values(entry):
     """Create a count of valid data within a Scorecard entry.
 
     Args:
@@ -117,7 +117,7 @@ def read_values(entry):
         counts: List of counts of valid data, 'PrivacySuppressed', and 'NULL'
             values.
     """
-    validate_scorecard_entry(entry)
+    _validate_scorecard_entry(entry)
     counts = [0, 0, 0]
     for value in entry[1:]:
         if value == 'NULL':
@@ -128,7 +128,7 @@ def read_values(entry):
             counts[0] += 1
     return counts
 
-def find_type(entry):
+def _find_type(entry):
     """Return a data type based on the entry.
 
     Args:
@@ -138,7 +138,7 @@ def find_type(entry):
         data_type: String description of the data type - 'INTEGER', 'REAL', or
             'TEXT'.
     """
-    validate_scorecard_entry(entry)
+    _validate_scorecard_entry(entry)
     data_type = 'INTEGER'
     for value in entry[1:]:
         if value in ('NULL', 'PrivacySuppressed'):

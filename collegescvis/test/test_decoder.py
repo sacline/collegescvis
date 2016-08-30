@@ -27,7 +27,7 @@ class TestDataPaths(unittest.TestCase):
         """
         empty_path = ''
         self.assertRaises(
-            FileNotFoundError, lambda: decoder.validate_data_path(empty_path))
+            FileNotFoundError, lambda: decoder._validate_data_path(empty_path))
 
     def test_nonstring_path(self):
         """Test non-string data file paths.
@@ -37,11 +37,11 @@ class TestDataPaths(unittest.TestCase):
         """
         nonstring_int_path = 5
         self.assertRaises(
-            TypeError, lambda: decoder.validate_data_path(nonstring_int_path))
+            TypeError, lambda: decoder._validate_data_path(nonstring_int_path))
 
         nonstring_list_path = ['path']
         self.assertRaises(
-            TypeError, lambda: decoder.validate_data_path(nonstring_list_path))
+            TypeError, lambda: decoder._validate_data_path(nonstring_list_path))
 
 
 class TestReadValues(unittest.TestCase):
@@ -56,29 +56,29 @@ class TestReadValues(unittest.TestCase):
         """Test valid entries (arguments) to read_values."""
         valid_entry = ['Category', '5', '8']
         valid_counts = [2, 0, 0]
-        self.assertEqual(decoder.read_values(valid_entry), valid_counts)
+        self.assertEqual(decoder._read_values(valid_entry), valid_counts)
 
         valid_entry = ['Category', '5.323', 'PrivacySuppressed', 'NULL']
         valid_counts = [1, 1, 1]
-        self.assertEqual(decoder.read_values(valid_entry), valid_counts)
+        self.assertEqual(decoder._read_values(valid_entry), valid_counts)
 
     def test_invalid_entry(self):
         """Test invalid entries (arguments) to read_values."""
         invalid_int_entry = [3, 5]
         self.assertRaises(
-            TypeError, lambda: decoder.read_values(invalid_int_entry))
+            TypeError, lambda: decoder._read_values(invalid_int_entry))
 
         invalid_tuple_entry = (3, 5)
         self.assertRaises(
-            TypeError, lambda: decoder.read_values(invalid_tuple_entry))
+            TypeError, lambda: decoder._read_values(invalid_tuple_entry))
 
         invalid_empty_entry = []
         self.assertRaises(
-            ValueError, lambda: decoder.read_values(invalid_empty_entry))
+            ValueError, lambda: decoder._read_values(invalid_empty_entry))
 
         invalid_str_entry = 'String'
         self.assertRaises(
-            TypeError, lambda: decoder.read_values(invalid_str_entry))
+            TypeError, lambda: decoder._read_values(invalid_str_entry))
 
 
 class TestFindType(unittest.TestCase):
@@ -93,17 +93,17 @@ class TestFindType(unittest.TestCase):
     def test_integer_entry(self):
         """Test an entry containing integer data."""
         valid_integer_entry = ['Category', '5', '2', '6', '873', 'NULL']
-        self.assertEqual('INTEGER', decoder.find_type(valid_integer_entry))
+        self.assertEqual('INTEGER', decoder._find_type(valid_integer_entry))
 
     def test_real_entry(self):
         """Test an entry containing real number data."""
         valid_real_entry = ['Category', '8.32', '7.2345', 'NULL', '5']
-        self.assertEqual('REAL', decoder.find_type(valid_real_entry))
+        self.assertEqual('REAL', decoder._find_type(valid_real_entry))
 
     def test_text_entry(self):
         """Test an example entry containing text data."""
         valid_text_entry = ['Category', '8.32', 'text', '5', 'NULL']
-        self.assertEqual('TEXT', decoder.find_type(valid_text_entry))
+        self.assertEqual('TEXT', decoder._find_type(valid_text_entry))
 
 
 def main():
