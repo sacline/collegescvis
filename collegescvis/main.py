@@ -1,11 +1,16 @@
-"""Entry point for the College Scorecard Visualizer."""
+"""Entry point for the College Scorecard Visualizer.
+
+Functions:
+    main(): main entry point into the College Scorecard Visualizer.
+"""
 import os
 import time
 import dbbuilder
 import decoder
 
+
 def main():
-    """Calls modules to build database and visualize data."""
+    """Call modules to build database and visualize data."""
     print('Beginning College Scorecard Visualizer...')
     print('Checking database...')
 
