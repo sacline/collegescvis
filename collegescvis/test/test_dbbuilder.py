@@ -1,7 +1,7 @@
 """Unit tests for the dbbuilder module.
 
 Classes:
-    TestInitializeDatabase(unittest.TestCase): Test initialize_database function.
+    TestInitializeDatabase(unittest.TestCase): Test initialize_database.
     TestSanitize(unittest.TestCase): Test sanitize function.
 """
 import unittest
