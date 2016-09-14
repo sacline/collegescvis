@@ -5,7 +5,7 @@ Functions:
 """
 import os
 import time
-import dbbuilder
+from dbbuilder import Dbbuilder
 import decoder
 
 
@@ -33,11 +33,13 @@ def main():
     if os.path.isfile(db_path):
         print('Database found.')
     else:
+        builder = Dbbuilder(db_path, types_dest_path)
         print('Generating database from raw data...')
         start_time = time.time()
-        dbbuilder.initialize_database(db_path, types_dest_path)
-        dbbuilder.build_database()
+        builder.build_database()
         print('Database generated in %s seconds.' % (time.time() - start_time))
+        #path_2000 = '%s/merged_2000_PP.csv' % (raw_data_path)
+        #builder.update_database(path_2000, '2000')
 
 if __name__ == '__main__':
     main()
