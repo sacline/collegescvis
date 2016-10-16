@@ -30,16 +30,18 @@ def main():
         os.path.dirname(__file__), os.pardir, 'data', 'database',
         'college-scorecard.sqlite')
     print('Database location:', db_path)
+    builder = Dbbuilder(db_path, types_dest_path)
     if os.path.isfile(db_path):
         print('Database found.')
     else:
-        builder = Dbbuilder(db_path, types_dest_path)
         print('Generating database from raw data...')
         start_time = time.time()
         builder.build_database()
-        print('Database generated in %s seconds.' % (time.time() - start_time))
-        #path_2000 = '%s/merged_2000_PP.csv' % (raw_data_path)
-        #builder.update_database(path_2000, '2000')
+        print('Database structure generated in %s seconds.'
+              % (time.time() - start_time))
+    for year in range(1996, 2014):
+        path = ('%s/merged_' + str(year) + '_PP.csv') % (raw_data_path)
+        builder.update_database(path, str(year))
 
 if __name__ == '__main__':
     main()

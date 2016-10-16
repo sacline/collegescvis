@@ -6,12 +6,16 @@ Functions:
     build_database(): Call functions to build tables and insert data.
     _build_year_tables(): Create year tables.
     _build_table(table_name): Create tables and add appropriate columns.
+    update_database(raw_data_path, year): Add raw data to database.
+    insert_data(data, year): Insert data for one college into the database.
+    question_generator(number): Create insert statement question mark string.
     sanitize(string): Check strings for characters that could harm database.
     _copy_table(source_table, target_table): Copy an existing table.
 """
 import os
 import json
 import sqlite3
+
 
 class Dbbuilder:
     """Class with data and methods for building the scorecard database.
@@ -71,9 +75,9 @@ class Dbbuilder:
 
     def _build_year_tables(self):
         """Execute table-building for the year data."""
-        self._build_table('1999')
-        for year in range(2000, 2014):
-            self._copy_table('1999', str(year))
+        self._build_table('1996')
+        for year in range(1997, 2014):
+            self._copy_table('1996', str(year))
 
     def _build_table(self, table_name):
         """Create database tables and add appropriate columns.
@@ -87,7 +91,7 @@ class Dbbuilder:
         Args:
             table_name: Name of the table ('College' or a year: '2000').
         """
-        lower_limit = 1 if table_name == 'College' else 36
+        lower_limit = 0 if table_name == 'College' else 36
         upper_limit = 35 if table_name == 'College' else 1728
         autoincrement = "AUTOINCREMENT" if table_name == 'College' else ''
 
@@ -116,9 +120,112 @@ class Dbbuilder:
         """
         if self.data_types is None:
             raise TypeError('Data types not loaded')
-        college_categories = self.data_types[0:35]
-        year_categories = self.data_types[35:]
-        #can open raw_data_path at this point
+
+        with open(raw_data_path, 'r', encoding='latin-1') as data:
+            entries = len(data.readlines()) - 1
+            count = 0
+            data.seek(0)
+            for line in data:
+                if line.startswith('UNITID'):
+                    continue
+                if (count % 250) == 0:
+                    print(count, ' of', entries, 'read from', raw_data_path)
+                self.insert_data(line, year)
+                count = count + 1
+        self.conn.commit()
+
+    def insert_data(self, data, year):
+        """Insert data into College and year tables.
+
+        Args:
+            data: String of raw data from input file.
+            year: String of the data source's year.
+        """
+
+        #Find indices in raw data to ignore
+        skipped_indices = []
+        expected_index = 0
+        for item in self.data_types:
+            while item[2] != expected_index:
+                skipped_indices.append(expected_index)
+                expected_index = expected_index + 1
+            expected_index = expected_index + 1
+
+        #Clean the raw data and leave out skipped data
+        clean_data = []
+        data_list = data.split(',')
+        for data_type in self.data_types:
+            index = data_type[2]
+            data_point = data_list[index]
+            if data_point[-1] == '\n': data_point = data_point[:-1]
+            if data_point == 'NULL' or data_point == 'PrivacySuppressed':
+                clean_data.append(None)
+            elif data_type[1] == 'INTEGER':
+                clean_data.append(int(data_point))
+            elif data_type[1] == 'REAL':
+                clean_data.append(float(data_point))
+            else:
+                clean_data.append(data_point)
+
+        unitid = clean_data[0]
+
+        #Find the first index for data going to year table
+        college_upper_limit = 35
+        year_start_index = 0
+        for i, item in enumerate(self.data_types):
+            if item[2] > college_upper_limit:
+                year_start_index = i
+                break
+
+        #Data insertion into College table
+        #Need to add updating individual items or use most current data
+        self.cur.execute(
+            '''SELECT * FROM College WHERE UNITID = %s''' % (unitid,))
+        selected_row = self.cur.fetchone()
+        if selected_row is None:
+            self.cur.execute(
+                '''INSERT INTO College VALUES %s''' %
+                (self.question_generator(len(clean_data[:year_start_index])+1)),
+                ([None] + self.sanitize(clean_data[:year_start_index])))
+
+        #Data insertion into Year table
+        #Optimize this later
+        self.cur.execute(
+            '''SELECT college_id FROM College WHERE UNITID = %s''' %
+            (self.sanitize(unitid),))
+        college_id = self.cur.fetchone()[0]
+
+        self.cur.execute(
+            '''SELECT * FROM "%s" WHERE college_id = %s''' % (year, college_id))
+        selected_row = self.cur.fetchone()
+        if selected_row is None:
+            self.cur.execute(
+                '''INSERT INTO "%s" VALUES %s''' %
+                (year,
+                 self.question_generator(len(clean_data[year_start_index:])+1)),
+                [college_id] + self.sanitize(clean_data[year_start_index:]))
+        else:
+            print('Year row already in table')
+
+    @staticmethod
+    def question_generator(number):
+        """Generate a string of question marks for use in insert statements.
+
+        Args:
+            number: Integer number of question marks (columns)
+
+        Returns:
+            string: String of question marks in the format (?,?,...,?,?)
+
+        Raises:
+            ValueError: If the number of question marks is less than 1.
+        """
+        if number < 1:
+            raise ValueError('Number of question marks must be greater than 0.')
+        string = '(?)'
+        for question in range(1, number):
+            string = string[0] + '?,' + string[1:]
+        return string
 
     @staticmethod
     def sanitize(string):
