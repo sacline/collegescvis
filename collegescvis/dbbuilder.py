@@ -7,7 +7,7 @@ Functions:
     _build_year_tables(): Create year tables.
     _build_table(table_name): Create tables and add appropriate columns.
     update_database(raw_data_path, year): Add raw data to database.
-    insert_data(data, year): Insert data for one college into the database.
+    _insert_data_(data, year): Insert data for one college into the database.
     question_generator(number): Create insert statement question mark string.
     sanitize(string): Check strings for characters that could harm database.
     _copy_table(source_table, target_table): Copy an existing table.
@@ -117,6 +117,9 @@ class Dbbuilder:
         Args:
             raw_data_path: String path to the raw data file.
             year: String source year for the data at raw_data_path.
+
+        Raises:
+            TypeError: if data types are not found
         """
         if self.data_types is None:
             raise TypeError('Data types not loaded')
@@ -130,11 +133,11 @@ class Dbbuilder:
                     continue
                 if (count % 250) == 0:
                     print(count, ' of', entries, 'read from', raw_data_path)
-                self.insert_data(line, year)
+                self._insert_data_(line, year)
                 count = count + 1
         self.conn.commit()
 
-    def insert_data(self, data, year):
+    def _insert_data_(self, data, year):
         """Insert data into College and year tables.
 
         Args:
@@ -242,8 +245,12 @@ class Dbbuilder:
             string: The string that was passed to the function.
 
         Raises:
+            TypeError: If the argument is not a string.
             ValueError: If the string contains an illegal character.
         """
+        if not isinstance(string, str):
+            raise TypeError(string + ' is not a valid string.')
+
         bad_chars = ['"', "'", ';', '\\', '/']
         for char in bad_chars:
             if char in string:

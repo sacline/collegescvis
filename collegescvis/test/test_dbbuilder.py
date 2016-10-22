@@ -1,7 +1,7 @@
 """Unit tests for the dbbuilder module.
 
 Classes:
-    TestInitializeDatabase(unittest.TestCase): Test initialize_database.
+    TestInitializeDatabase(unittest.TestCase): Test database init.
     TestSanitize(unittest.TestCase): Test sanitize function.
 """
 import unittest
@@ -9,7 +9,7 @@ from dbbuilder import Dbbuilder
 
 
 class TestInitializeDatabase(unittest.TestCase):
-    """Contains tests for the dbbuilder's initialize_database function.
+    """Contains tests for dbbuilder initialization.
 
     Methods:
         test_invalid_db_path(self): Test invalid database path input.
@@ -47,6 +47,7 @@ class TestSanitize(unittest.TestCase):
 
     Methods:
         test_valid_input(self): Test various valid inputs.
+        test_invalid_input(self): Test non-string input.
         test_bad_characters(self): Test inputs containing invalid characters.
     """
 
@@ -61,6 +62,18 @@ class TestSanitize(unittest.TestCase):
         valid_input_string = '!@Table(3)'
         self.assertEqual(
             valid_input_string, Dbbuilder.sanitize(valid_input_string))
+
+    def test_invalid_input(self):
+        """Test invalid (nonstring) inputs."""
+        invalid_input = 3859
+        self.assertRaises(
+            TypeError, lambda: Dbbuilder.sanitize(invalid_input))
+        invalid_input = ['string']
+        self.assertRaises(
+            TypeError, lambda: Dbbuilder.sanitize(invalid_input))
+        invalid_input = ('string1', 'string2')
+        self.assertRaises(
+            TypeError, lambda: Dbbuilder.sanitize(invalid_input))
 
     def test_bad_characters(self):
         """Test inputs containing invalid characters."""
