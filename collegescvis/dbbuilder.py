@@ -119,10 +119,15 @@ class Dbbuilder:
             year: String source year for the data at raw_data_path.
 
         Raises:
-            TypeError: if data types are not found
+            TypeError: If data types do not exist.
+            FileNotFoundError: If the raw data file cannot be found.
         """
         if self.data_types is None:
             raise TypeError('Data types not loaded')
+
+        if not os.path.isfile(raw_data_path):
+            raise FileNotFoundError(
+                'Raw data file not found: %s' % raw_data_path)
 
         with open(raw_data_path, 'r', encoding='latin-1') as data:
             entries = len(data.readlines()) - 1
