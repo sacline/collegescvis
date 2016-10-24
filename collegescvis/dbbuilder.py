@@ -190,19 +190,20 @@ class Dbbuilder:
         self.cur.execute(
             '''SELECT * FROM College WHERE UNITID = %s''' % (unitid,))
         selected_row = self.cur.fetchone()
+        college_id = ''
         if selected_row is None:
             self.cur.execute(
                 '''INSERT INTO College VALUES %s''' %
                 (self.question_generator(len(clean_data[:year_start_index])+1)),
                 ([None] + self.sanitize(clean_data[:year_start_index])))
+            self.cur.execute(
+                '''SELECT college_id FROM College WHERE UNITID = %s''' %
+                (self.sanitize(unitid),))
+            college_id = self.cur.fetchone()[0]
+        else:
+            college_id = selected_row[0]
 
         #Data insertion into Year table
-        #Optimize this later
-        self.cur.execute(
-            '''SELECT college_id FROM College WHERE UNITID = %s''' %
-            (self.sanitize(unitid),))
-        college_id = self.cur.fetchone()[0]
-
         self.cur.execute(
             '''SELECT * FROM "%s" WHERE college_id = %s''' % (year, college_id))
         selected_row = self.cur.fetchone()
