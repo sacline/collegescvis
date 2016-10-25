@@ -114,6 +114,9 @@ class Dbbuilder:
     def update_database(self, raw_data_path, year):
         """Update the database with data from a file.
 
+        Also checks the table to see if data already exists in the 
+        destination table.
+
         Args:
             raw_data_path: String path to the raw data file.
             year: String source year for the data at raw_data_path.
@@ -128,6 +131,20 @@ class Dbbuilder:
         if not os.path.isfile(raw_data_path):
             raise FileNotFoundError(
                 'Raw data file not found: %s' % raw_data_path)
+
+        #Check if table needs to be updated
+        self.cur.execute(
+            '''SELECT Count(*) FROM "%s"''' % (year,))
+        count = self.cur.fetchone()[0]
+        if int(count) > 1000:
+            print('Table: %s appears to already contain data. Would you like '
+                  'to continue trying to add the data?' % (year,))
+            selection = ''
+        while(selection != 'y' and selection != 'n'):
+            selection = input('(y/n)? ')
+            selection = str.lower(selection)
+        if selection == 'n':
+            return
 
         with open(raw_data_path, 'r', encoding='latin-1') as data:
             entries = len(data.readlines()) - 1
