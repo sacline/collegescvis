@@ -15,6 +15,7 @@ Functions:
 import os
 import json
 import sqlite3
+from validator import Validator
 
 
 class Dbbuilder:
@@ -32,7 +33,9 @@ class Dbbuilder:
         self._validate_data_types_path(data_types_path)
 
         self.db_path = db_path
+
         with open(data_types_path, 'r') as data_file:
+            Validator.check_data_types(data_file)
             self.data_types = json.loads(data_file.readline())
 
         self.conn = sqlite3.connect(self.db_path)
@@ -147,6 +150,7 @@ class Dbbuilder:
             return
 
         with open(raw_data_path, 'r', encoding='latin-1') as data:
+            Validator.check_raw_data(data)
             entries = len(data.readlines()) - 1
             count = 0
             data.seek(0)
