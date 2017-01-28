@@ -4,9 +4,12 @@ Functions:
     main(): main entry point into the College Scorecard Visualizer.
 """
 import os
+import sys
 import time
 from dbbuilder import Dbbuilder
 import decoder
+from PyQt4 import QtGui
+from interface import Interface
 
 
 def main():
@@ -42,6 +45,10 @@ def main():
     for year in range(1996, 2014):
         path = ('%s/merged_' + str(year) + '_PP.csv') % (raw_data_path)
         builder.update_database(path, str(year))
+
+    app = QtGui.QApplication(sys.argv)
+    interface = Interface(db_path)
+    sys.exit(app.exec_())
 
 if __name__ == '__main__':
     main()
