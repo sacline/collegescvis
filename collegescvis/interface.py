@@ -1,6 +1,17 @@
 """Interface for plotting College Scorecard data.
 
+The interface features a MainWindow containing a Matplotlib Figure where the
+data can be plotted. The MainWindow's menu allows the user to open a
+PlotConfigWindow where they can select the data to be plotted. The selection
+interface is organized with SeriesOptions objects, which contain drop down
+boxes for users to easily select the college, type of data, and year range they
+want to plot.
 
+The interface is organized by using an Interface class that contains an
+instance of each Class used in the interface. Communication between each of the
+classes is possible by going through the Interface. Each part of the interface
+contains a reference to a parent object, and the top-level parent object is the
+Interface.
 """
 import sqlite3
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
@@ -106,7 +117,6 @@ class MainMenu():
     Args:
         parent: The application's MainWindow object.
     """
-
     def __init__(self, parent):
         self.parent = parent
 
