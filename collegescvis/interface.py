@@ -83,7 +83,9 @@ class MainWindow(QtGui.QMainWindow):
         This code is executed when the application receives a request to plot
         datasets and after the data has been retrieved from the database. Each
         plot is illustrated as a scatterplot with markers of different colors
-        and shapes to differentiate between datasets.
+        and shapes to differentiate between datasets. If no data exists for
+        a SeriesPlot object, it is skipped and the user is alerted with a
+        message box.
         """
         colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
         markers = ['o', 's', '^']
@@ -93,7 +95,6 @@ class MainWindow(QtGui.QMainWindow):
         legend_list = []
         count = 0
         for series in self.parent.plot_settings.series_plots:
-            #need to handle errors for too many plots
             x_data = list(
                 range(int(series.start_year), int(series.end_year) + 1))
             y_data = []
@@ -101,15 +102,35 @@ class MainWindow(QtGui.QMainWindow):
                 y_data = [series.data[0] for val in x_data]
             else:
                 y_data = series.data
-            #print(x, y)
+            if len(y_data) == 0:
+                self.create_popup(
+                    series.data_type + ' data does not exist for ' +
+                    series.college + ' for years ' + series.start_year + '-' +
+                    series.end_year + '. Data will not appear in plot.')
+                continue
             ax = self.figure.add_axes(self.rect)
-            ax.scatter(x_data, 
+            ax.scatter(x_data,
                        y_data,
                        c=colors[count%len(colors)],
                        marker=markers[int(count/len(colors))])
             legend_list.append(series.college + ' ' + series.data_type)
             count = count + 1
         plt.legend(legend_list)
+
+    def create_popup(self, string):
+        """Creates a simple QMessageBox with a specified message.
+
+        This will be used to alert the user of unexpected behavior. For example,
+        if the user selects data to be plotted and the query to the database
+        returns no data, a popup will be created notifying the user that the
+        data will not be plotted.
+
+        Args:
+            string: The message to be displayed in the message box.
+        """
+        msg_box = QtGui.QMessageBox()
+        msg_box.setText(string)
+        msg_box.exec_()
 
 class MainMenu():
     """Class containing the MainWindow menu bar elements.
