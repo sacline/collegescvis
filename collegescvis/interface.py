@@ -95,14 +95,9 @@ class MainWindow(QtGui.QMainWindow):
         legend_list = []
         count = 0
         for series in self.parent.plot_settings.series_plots:
-            x_data = list(
-                range(int(series.start_year), int(series.end_year) + 1))
-            y_data = []
-            if series.is_college:
-                y_data = [series.data[0] for val in x_data]
-            else:
-                y_data = series.data
-            if len(y_data) == 0:
+            x_data = series.get_xy_data()[0]
+            y_data = series.get_xy_data()[1]
+            if len(y_data) == 0 or (len(y_data) == 1 and y_data[0] == None):
                 self.create_popup(
                     series.data_type + ' data does not exist for ' +
                     series.college + ' for years ' + series.start_year + '-' +
@@ -382,6 +377,22 @@ class SeriesPlot():
         self.end_year = end_year
         self.is_college = is_college
         self.data = []
+
+    def get_xy_data(self):
+        """Generates a list of x and y coordinates to be plotted.
+
+        Returns:
+            (x_data, y_data): tuple containing list of x values and list of y
+                values
+        """
+        x_data = list(
+            range(int(self.start_year), int(self.end_year) + 1))
+        y_data = []
+        if self.is_college:
+            y_data = [self.data[0] for val in x_data]
+        else:
+            y_data = self.data
+        return (x_data, y_data)
 
     def to_string(self):
         """Convenience method to convert SeriesPlot to a string."""
