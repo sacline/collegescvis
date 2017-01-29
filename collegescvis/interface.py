@@ -148,7 +148,6 @@ class MainMenu():
 
         plotmenu = QtGui.QMenu('Plot', parent=self.parent.main)
         plotmenu.addAction('New Plot', self.parent.plot_config_window.show)
-        plotmenu.addAction('Edit Plot')
         self.parent.main.menuBar().addMenu(plotmenu)
 
 class PlotSettings():
