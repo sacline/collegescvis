@@ -71,6 +71,9 @@ class MainWindow(QtGui.QMainWindow):
             figure: figure containing the initial axes object(s).
         """
         figure = plt.figure()
+        title_text =(
+            'Use the menubar above (Plot => New Plot) to plot data.')
+        figure.suptitle(title_text, fontsize=14, y=0.5)
         figure.subplots_adjust(left=0.075)
         return figure
 
@@ -87,16 +90,17 @@ class MainWindow(QtGui.QMainWindow):
         colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
         markers = ['o', 's', '^']
 
+        #clear the figure
         for plot in self.figure.get_axes():
             self.figure.delaxes(plot)
-
-        series_list = self.parent.plot_settings.get_series_plots()
+        self.figure.suptitle('')
 
         #parent axes created to share x axis with other axes
         parent_axes = self.build_parent_axes()
 
         #add twinned axes until number of axes equals number of series
         ax_list = [parent_axes]
+        series_list = self.parent.plot_settings.get_series_plots()
         if len(series_list) > 1:
             for series in series_list[1:]:
                 ax_list.append(parent_axes.twinx())
