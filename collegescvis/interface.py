@@ -9,8 +9,8 @@ want to plot.
 
 The interface is organized by using an Interface class that contains an
 instance of each Class used in the interface. Communication between each of the
-classes is possible by going through the Interface. Each part of the interface
-contains a reference to a parent object, and the top-level parent object is the
+classes is possible through the Interface. Each part of the interface contains
+a reference to a parent object, and the top-level parent object is the
 Interface.
 """
 import sqlite3
@@ -57,24 +57,21 @@ class MainWindow(QtGui.QMainWindow):
     def __init__(self, parent):
         QtGui.QMainWindow.__init__(self)
         self.parent = parent
-        self.rect = [0.1, 0.1, 0.8, 0.8] #axes size
 
         self.figure = self.build_figure()
         self.canvas = FigureCanvas(self.figure)
         self.setCentralWidget(self.canvas)
         self.show()
 
-    def build_figure(self):
+    @staticmethod
+    def build_figure():
         """Build the initial figure on application startup.
 
         Returns:
             figure: figure containing the initial axes object(s).
         """
         figure = plt.figure()
-        ax1 = figure.add_axes(self.rect, label='axes1')
-        ax2 = figure.add_axes(self.rect, label='axes2')
-        ax1.plot()
-        ax2.plot()
+        figure.subplots_adjust(left=0.075)
         return figure
 
     def update_figure(self):
@@ -84,7 +81,7 @@ class MainWindow(QtGui.QMainWindow):
         datasets and after the data has been retrieved from the database. Each
         plot is illustrated as a scatterplot with markers of different colors
         and shapes to differentiate between datasets. If no data exists for
-        a SeriesPlot object, it is skipped and the user is alerted with a
+        a user-requested plot, it is skipped and the user is alerted with a
         message box.
         """
         colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
@@ -92,28 +89,79 @@ class MainWindow(QtGui.QMainWindow):
 
         for plot in self.figure.get_axes():
             self.figure.delaxes(plot)
-        legend_list = []
+
+        series_list = self.parent.plot_settings.get_series_plots()
+
+        #parent axes created to share x axis with other axes
+        parent_axes = self.build_parent_axes()
+
+        #add twinned axes until number of axes equals number of series
+        ax_list = [parent_axes]
+        if len(series_list) > 1:
+            for series in series_list[1:]:
+                ax_list.append(parent_axes.twinx())
+
         count = 0
-        for series in self.parent.plot_settings.series_plots:
-            x_data = series.get_xy_data()[0]
-            y_data = series.get_xy_data()[1]
-            if len(y_data) == 0 or (len(y_data) == 1 and y_data[0] == None):
+        for index, series in enumerate(series_list):
+            x_data, y_data = series.get_xy_data()
+
+            #skip if data does not exist
+            if len(y_data) == 0 or (len(y_data) == 1 and y_data[0] is None):
+                ax_list[index].set_axis_off()
                 self.create_popup(
                     series.data_type + ' data does not exist for ' +
                     series.college + ' for years ' + series.start_year + '-' +
                     series.end_year + '. Data will not appear in plot.')
                 continue
-            ax = self.figure.add_axes(self.rect)
-            ax.scatter(x_data,
-                       y_data,
-                       c=colors[count%len(colors)],
-                       marker=markers[int(count/len(colors))])
-            legend_list.append(series.college + ' ' + series.data_type)
-            count = count + 1
-        plt.legend(legend_list)
 
-    def create_popup(self, string):
-        """Creates a simple QMessageBox with a specified message.
+            #plot the data
+            ax_label = series.college + ' ' + series.data_type
+            color = colors[count%len(colors)]
+            marker = markers[int(count/len(colors))]
+            ax_list[index].scatter(
+                x_data, y_data, c=color, marker=marker, label=ax_label)
+
+            #configure the y axis
+            ax_list[index].set_ylim(self.get_y_limits(y_data))
+            ax_list[index].set_ylabel(series.data_type, color=color)
+            ax_list[index].ticklabel_format(axis='y', useOffset=False)
+            ax_list[index].tick_params(axis='y', colors=color)
+
+            #adjust the plot for new y axes
+            if count > 1:
+                self.figure.subplots_adjust(right=0.9 - 0.025 * count)
+                ax_list[index].spines['right'].set_position(
+                    ('axes', 0.95 + .07 * count))
+            count = count + 1
+
+        #create the legend
+        lines, labels = [], []
+        for ax in ax_list:
+            ax_lines, ax_labels = ax.get_legend_handles_labels()
+            lines += ax_lines
+            labels += ax_labels
+        parent_axes.legend(lines, labels, loc='upper right')
+
+    @staticmethod
+    def get_y_limits(y_data):
+        """Return min and max values to be used as y axis limits.
+
+        Args:
+            y_data: Data set.
+
+        Returns:
+            (y_min, y_max): Tuple with min and max axis limits.
+        """
+        min_scale = 0.9
+        max_scale = 1.1
+        clean_y_data = [y for y in y_data if y != None]
+        y_min = min(clean_y_data)*min_scale
+        y_max = max(clean_y_data)*max_scale
+        return (y_min, y_max)
+
+    @staticmethod
+    def create_popup(string):
+        """Create a simple QMessageBox with a specified message.
 
         This will be used to alert the user of unexpected behavior. For example,
         if the user selects data to be plotted and the query to the database
@@ -126,6 +174,22 @@ class MainWindow(QtGui.QMainWindow):
         msg_box = QtGui.QMessageBox()
         msg_box.setText(string)
         msg_box.exec_()
+
+    def build_parent_axes(self):
+        """Build a parent axes to hold the x axis shared by all the plots.
+
+        Returns:
+            parent_axes: Axes object with correct x axis scale.
+        """
+        parent_axes = plt.subplot()
+        #parent_axes = self.figure.add_axes(self.rect)
+        x_min = int(self.parent.plot_settings._get_year_range()[0]) - 1
+        x_max = int(self.parent.plot_settings._get_year_range()[1]) + 1
+        parent_axes.set_xlim([x_min, x_max])
+        parent_axes.ticklabel_format(axis='x', useOffset=False)
+        parent_axes.set_xticks([year for year in range(x_min, x_max+1)])
+        parent_axes.set_xlabel('Year')
+        return parent_axes
 
 class MainMenu():
     """Class containing the MainWindow menu bar elements.
@@ -202,7 +266,7 @@ class PlotSettings():
                         print('No data found for series: ', series.to_string())
                     for value in results:
                         series.data.append(value[0])
-                #print(series.data)
+                print(series.data)
 
     def add_series_plot(self, series_plot):
         """Add a SeriesPlot object to the list."""
@@ -211,6 +275,26 @@ class PlotSettings():
     def clear_series_plots(self):
         """Clear the list of SeriesPlot objects."""
         self.series_plots = []
+
+    def get_series_plots(self):
+        """Returns the list of SeriesPlot objects."""
+        return self.series_plots
+
+    def _get_year_range(self):
+        """Return the data's min and max years from SeriesPlot list.
+
+        Returns:
+            (min_year, max_year): Tuple containing the string
+                min and max years from the dataset.
+        """
+        min_year = 10000
+        max_year = 0
+        for series in self.series_plots:
+            if int(series.start_year) < min_year:
+                min_year = int(series.start_year)
+            if int(series.end_year) > max_year:
+                max_year = int(series.end_year)
+        return (str(min_year), str(max_year))
 
     def _get_college_names(self):
         """Retrieve names of colleges from the database and store them."""
