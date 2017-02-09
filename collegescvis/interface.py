@@ -13,6 +13,7 @@ classes is possible through the Interface. Each part of the interface contains
 a reference to a parent object, and the top-level parent object is the
 Interface.
 """
+import json
 import sqlite3
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
@@ -71,7 +72,7 @@ class MainWindow(QtGui.QMainWindow):
             figure: figure containing the initial axes object(s).
         """
         figure = plt.figure()
-        title_text =(
+        title_text = (
             'Use the menubar above (Plot => New Plot) to plot data.')
         figure.suptitle(title_text, fontsize=14, y=0.5)
         figure.subplots_adjust(left=0.075)
@@ -140,8 +141,8 @@ class MainWindow(QtGui.QMainWindow):
 
         #create the legend
         lines, labels = [], []
-        for ax in ax_list:
-            ax_lines, ax_labels = ax.get_legend_handles_labels()
+        for axes in ax_list:
+            ax_lines, ax_labels = axes.get_legend_handles_labels()
             lines += ax_lines
             labels += ax_labels
         parent_axes.legend(lines, labels, loc='upper right')
@@ -195,6 +196,19 @@ class MainWindow(QtGui.QMainWindow):
         parent_axes.set_xlabel('Year')
         return parent_axes
 
+    def export_data(self):
+        """Exports plotted data in JSON format to a user-specified file."""
+        if len(self.parent.plot_settings.get_series_plots()) == 0:
+            self.create_popup(
+                'No valid data to export found. Please try again.')
+            return
+        data = self.parent.plot_settings.get_series_plots()
+        json_list = [entry.__dict__ for entry in data]
+        filename = QtGui.QFileDialog.getSaveFileName(
+            self, 'Save File', '', '*.json')
+        with open(filename, 'w') as save_file:
+            json.dump(json_list, save_file)
+
 class MainMenu():
     """Class containing the MainWindow menu bar elements.
 
@@ -205,7 +219,7 @@ class MainMenu():
         self.parent = parent
 
         filemenu = QtGui.QMenu('File', parent=self.parent.main)
-        filemenu.addAction('Export Plot', self.parent.main.close)
+        filemenu.addAction('Export Data', self.parent.main.export_data)
         filemenu.addAction('Close', self.parent.main.close)
         self.parent.main.menuBar().addMenu(filemenu)
 
@@ -270,7 +284,6 @@ class PlotSettings():
                         print('No data found for series: ', series.to_string())
                     for value in results:
                         series.data.append(value[0])
-                print(series.data)
 
     def add_series_plot(self, series_plot):
         """Add a SeriesPlot object to the list."""
