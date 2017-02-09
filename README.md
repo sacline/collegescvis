@@ -28,4 +28,4 @@ Please let me know if you have any trouble running the program, as well as the v
 
 ##Example
 Below is an example plot:
-![Example Plot](/https://github.com/sacline/collegescvis/blob/test/example.png)
+[[https://github.com/sacline/collegescvis/blob/test/example.png]]
