@@ -19,6 +19,7 @@ Python application for plotting and visualizing [College Scorecard] (https://col
 * Python 3.4+
 * Matplotlib 1.4.2-3.1+
 * PyQt4 4.11.2+
+
 Please let me know if you have any trouble running the program, as well as the version of the above packages you are using.
 
 ##How to run
@@ -27,5 +28,6 @@ Please let me know if you have any trouble running the program, as well as the v
 3. Use the interface to plot data.
 
 ##Example
-Below is an example plot:
+The link below shows a screenshot of an example plot:
+
 [[https://github.com/sacline/collegescvis/blob/test/example.png]]
