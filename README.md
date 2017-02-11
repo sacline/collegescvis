@@ -24,10 +24,10 @@ Please let me know if you have any trouble running the program, as well as the v
 
 ##How to run
 1. Download raw data from the [College Scorecard] (https://collegescorecard.ed.gov/data) site and unzip it into the data/raw\_data folder.
-2. Run collegecsvis/main.py. It will take some time to build the database from the raw data.
+2. Run collegescvis/main.py. It will take some time to build the database from the raw data.
 3. Use the interface to plot data.
 
 ##Example
 The link below shows a screenshot of an example plot:
 
-[[https://github.com/sacline/collegescvis/blob/test/example.png]]
+![Example](https://github.com/sacline/collegescvis/blob/test/example.png)
