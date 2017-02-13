@@ -1,17 +1,19 @@
-"""Interface for plotting College Scorecard data.
+"""
+interface.py
+Copyright (C) <2017>  <S. Cline>
 
-The interface features a MainWindow containing a Matplotlib Figure where the
-data can be plotted. The MainWindow's menu allows the user to open a
-PlotConfigWindow where they can select the data to be plotted. The selection
-interface is organized with SeriesOptions objects, which contain drop down
-boxes for users to easily select the college, type of data, and year range they
-want to plot.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-The interface is organized by using an Interface class that contains an
-instance of each Class used in the interface. Communication between each of the
-classes is possible through the Interface. Each part of the interface contains
-a reference to a parent object, and the top-level parent object is the
-Interface.
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import json
 import sqlite3
@@ -19,7 +21,8 @@ from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
 import matplotlib.pyplot as plt
 from PyQt4 import QtCore, QtGui
 
-class Interface():
+
+class Interface(object):
     """Top-level class that contains all other interface classes.
 
     The Interface class is used to communicate between different classes that
@@ -34,6 +37,7 @@ class Interface():
         main: Main window of the application.
         main_menu: Menu bar for the application.
     """
+
     def __init__(self, db_path):
         self.plot_settings = PlotSettings(db_path)
 
@@ -50,22 +54,21 @@ class MainWindow(QtGui.QMainWindow):
 
     Attributes:
         parent: Reference to the parent Interface object.
-        rect: Dimensions of the axes objects.
         figure: Figure object that contains all axes/plots.
-        canvas: FigureCanvas connecting PyQt with Matplotlib elements.
+        canvas: FigureCanvasQTAgg used to connect PyQt with Matplotlib elements.
     """
 
     def __init__(self, parent):
         QtGui.QMainWindow.__init__(self)
         self.parent = parent
 
-        self.figure = self.build_figure()
+        self.figure = self._build_figure()
         self.canvas = FigureCanvas(self.figure)
         self.setCentralWidget(self.canvas)
         self.show()
 
     @staticmethod
-    def build_figure():
+    def _build_figure():
         """Build the initial figure on application startup.
 
         Returns:
@@ -78,7 +81,7 @@ class MainWindow(QtGui.QMainWindow):
         figure.subplots_adjust(left=0.075)
         return figure
 
-    def update_figure(self):
+    def _update_figure(self):
         """Update the figure with an Axes for each plotted dataset.
 
         This code is executed when the application receives a request to plot
@@ -91,55 +94,55 @@ class MainWindow(QtGui.QMainWindow):
         colors = ['b', 'g', 'r', 'c', 'm', 'y', 'k']
         markers = ['o', 's', '^']
 
-        #clear the figure
+        #Clear the figure
         for plot in self.figure.get_axes():
             self.figure.delaxes(plot)
         self.figure.suptitle('')
 
-        #parent axes created to share x axis with other axes
-        parent_axes = self.build_parent_axes()
+        #Parent axes created to share x axis with other axes
+        parent_axes = self._build_parent_axes()
 
-        #add twinned axes until number of axes equals number of series
+        #Add twinned axes until number of axes equals number of series
         ax_list = [parent_axes]
-        series_list = self.parent.plot_settings.get_series_plots()
+        series_list = self.parent.plot_settings._get_series_plots()
         if len(series_list) > 1:
             for series in series_list[1:]:
                 ax_list.append(parent_axes.twinx())
 
         count = 0
         for index, series in enumerate(series_list):
-            x_data, y_data = series.get_xy_data()
+            x_data, y_data = series._get_xy_data()
 
-            #skip if data does not exist
+            #Skip if data does not exist
             if len(y_data) == 0 or (len(y_data) == 1 and y_data[0] is None):
                 ax_list[index].set_axis_off()
-                self.create_popup(
+                self._create_popup(
                     series.data_type + ' data does not exist for ' +
                     series.college + ' for years ' + series.start_year + '-' +
                     series.end_year + '. Data will not appear in plot.')
                 continue
 
-            #plot the data
+            #Plot the data
             ax_label = series.college + ' ' + series.data_type
             color = colors[count%len(colors)]
             marker = markers[int(count/len(colors))]
             ax_list[index].scatter(
                 x_data, y_data, c=color, marker=marker, label=ax_label)
 
-            #configure the y axis
-            ax_list[index].set_ylim(self.get_y_limits(y_data))
+            #Configure the y axis
+            ax_list[index].set_ylim(self._get_y_limits(y_data))
             ax_list[index].set_ylabel(series.data_type, color=color)
             ax_list[index].ticklabel_format(axis='y', useOffset=False)
             ax_list[index].tick_params(axis='y', colors=color)
 
-            #adjust the plot for new y axes
+            #Adjust the plot for new y axes
             if count > 1:
                 self.figure.subplots_adjust(right=0.9 - 0.025 * count)
                 ax_list[index].spines['right'].set_position(
                     ('axes', 0.95 + .07 * count))
             count = count + 1
 
-        #create the legend
+        #Create the legend
         lines, labels = [], []
         for axes in ax_list:
             ax_lines, ax_labels = axes.get_legend_handles_labels()
@@ -148,7 +151,7 @@ class MainWindow(QtGui.QMainWindow):
         parent_axes.legend(lines, labels, loc='upper right')
 
     @staticmethod
-    def get_y_limits(y_data):
+    def _get_y_limits(y_data):
         """Return min and max values to be used as y axis limits.
 
         Args:
@@ -165,7 +168,7 @@ class MainWindow(QtGui.QMainWindow):
         return (y_min, y_max)
 
     @staticmethod
-    def create_popup(string):
+    def _create_popup(string):
         """Create a simple QMessageBox with a specified message.
 
         This will be used to alert the user of unexpected behavior. For example,
@@ -180,14 +183,13 @@ class MainWindow(QtGui.QMainWindow):
         msg_box.setText(string)
         msg_box.exec_()
 
-    def build_parent_axes(self):
+    def _build_parent_axes(self):
         """Build a parent axes to hold the x axis shared by all the plots.
 
         Returns:
             parent_axes: Axes object with correct x axis scale.
         """
         parent_axes = plt.subplot()
-        #parent_axes = self.figure.add_axes(self.rect)
         x_min = int(self.parent.plot_settings._get_year_range()[0]) - 1
         x_max = int(self.parent.plot_settings._get_year_range()[1]) + 1
         parent_axes.set_xlim([x_min, x_max])
@@ -196,30 +198,31 @@ class MainWindow(QtGui.QMainWindow):
         parent_axes.set_xlabel('Year')
         return parent_axes
 
-    def export_data(self):
+    def _export_data(self):
         """Exports plotted data in JSON format to a user-specified file."""
-        if len(self.parent.plot_settings.get_series_plots()) == 0:
-            self.create_popup(
+        if len(self.parent.plot_settings._get_series_plots()) == 0:
+            self._create_popup(
                 'No valid data to export found. Please try again.')
             return
-        data = self.parent.plot_settings.get_series_plots()
+        data = self.parent.plot_settings._get_series_plots()
         json_list = [entry.__dict__ for entry in data]
         filename = QtGui.QFileDialog.getSaveFileName(
             self, 'Save File', '', '*.json')
         with open(filename, 'w') as save_file:
             json.dump(json_list, save_file)
 
-class MainMenu():
+class MainMenu(object):
     """Class containing the MainWindow menu bar elements.
 
     Args:
         parent: The application's MainWindow object.
     """
+
     def __init__(self, parent):
         self.parent = parent
 
         filemenu = QtGui.QMenu('File', parent=self.parent.main)
-        filemenu.addAction('Export Data', self.parent.main.export_data)
+        filemenu.addAction('Export Data', self.parent.main._export_data)
         filemenu.addAction('Close', self.parent.main.close)
         self.parent.main.menuBar().addMenu(filemenu)
 
@@ -227,7 +230,7 @@ class MainMenu():
         plotmenu.addAction('New Plot', self.parent.plot_config_window.show)
         self.parent.main.menuBar().addMenu(plotmenu)
 
-class PlotSettings():
+class PlotSettings(object):
     """Stores info for plotting Scorecard data.
 
     Upon starting the application, the PlotSettings object pulls the list of
@@ -247,7 +250,7 @@ class PlotSettings():
     def __init__(self, db_path):
         self.cur = sqlite3.connect(db_path).cursor()
 
-        #Data stored in PlotSettings to prevent repeated db calls.
+        #Data is stored in PlotSettings to prevent repeated db calls.
         self.college_names = []
         self.year_names = []
         self.data_types = []
@@ -259,20 +262,22 @@ class PlotSettings():
         self.max_college_data_index = 0
         self.series_plots = []
 
-    def query_db(self):
+    def _query_db(self):
         """Retrieve data from the database for each user-requested plot."""
         for series in self.series_plots:
             years = list(
                 range(int(series.start_year), int(series.end_year) + 1))
+
             if series.is_college:
                 self.cur.execute(
                     '''SELECT %s FROM College WHERE INSTNM = ?''' %
                     (series.data_type), (series.college,))
                 results = self.cur.fetchall()
                 if len(results) == 0:
-                    print('No data found for series: ', series.to_string())
+                    print('No data found for series: ', series._to_string())
                 for value in results:
                     series.data.append(value[0])
+
             else:
                 for year in years:
                     self.cur.execute(
@@ -281,19 +286,19 @@ class PlotSettings():
                         % (series.data_type, year, year), (series.college,))
                     results = self.cur.fetchall()
                     if len(results) == 0:
-                        print('No data found for series: ', series.to_string())
+                        print('No data found for series: ', series._to_string())
                     for value in results:
                         series.data.append(value[0])
 
-    def add_series_plot(self, series_plot):
+    def _add_series_plot(self, series_plot):
         """Add a SeriesPlot object to the list."""
         self.series_plots.append(series_plot)
 
-    def clear_series_plots(self):
+    def _clear_series_plots(self):
         """Clear the list of SeriesPlot objects."""
         self.series_plots = []
 
-    def get_series_plots(self):
+    def _get_series_plots(self):
         """Returns the list of SeriesPlot objects."""
         return self.series_plots
 
@@ -373,7 +378,7 @@ class PlotConfigWindow(QtGui.QWidget):
         self.confirm_button = QtGui.QPushButton('Plot Series')
         QtCore.QObject.connect(
             self.confirm_button, QtCore.SIGNAL('clicked()'),
-            self.get_plot_settings)
+            self._get_plot_settings)
         self.layout.addWidget(self.confirm_button)
 
     def _addSeries(self, college_names, year_names, data_types):
@@ -382,17 +387,17 @@ class PlotConfigWindow(QtGui.QWidget):
         self.series_options.insert(0, options)
         self.layout.insertWidget(0, options)
 
-    def get_plot_settings(self):
+    def _get_plot_settings(self):
         """Send information to be stored in PlotSettings object."""
         if len(self.series_options) > 20:
             print('Maximum number of plots supported is 20.')
             self.close()
             return
-        self.parent.plot_settings.clear_series_plots()
+        self.parent.plot_settings._clear_series_plots()
         for option in self.series_options:
-            self.parent.plot_settings.add_series_plot(option.get_series())
-        self.parent.plot_settings.query_db()
-        self.parent.main.update_figure()
+            self.parent.plot_settings._add_series_plot(option._get_series())
+        self.parent.plot_settings._query_db()
+        self.parent.main._update_figure()
         self.close()
 
 class SeriesOptions(QtGui.QWidget):
@@ -401,11 +406,11 @@ class SeriesOptions(QtGui.QWidget):
     Attributes:
         layout: Layout of each row of boxes - arranged horizontally.
         parent: PlotConfigWindow object containing this SeriesOptions.
-        schoolbox: Drop down box to select the college.
-        databox: Drop down box to select the data type.
-        startyearbox: Drop down box to select the beginning year for the data.
-        endyearbox: Drop down box to select the end year for the data.
-        removebox: Button to delete this from the PlotConfigWindow.
+        school_box: Drop down box to select the college.
+        data_box: Drop down box to select the data type.
+        start_year_box: Drop down box to select the beginning year for the data.
+        end_year_box: Drop down box to select the end year for the data.
+        remove_box: Button to delete this from the PlotConfigWindow.
     """
 
     def __init__(self, parent, college_names, year_names, data_types):
@@ -413,53 +418,53 @@ class SeriesOptions(QtGui.QWidget):
         self.layout = QtGui.QHBoxLayout(self)
         self.parent = parent
 
-        self.schoolbox = QtGui.QComboBox()
+        self.school_box = QtGui.QComboBox()
         for college in college_names:
-            self.schoolbox.addItem(college)
-        self.layout.addWidget(self.schoolbox)
+            self.school_box.addItem(college)
+        self.layout.addWidget(self.school_box)
 
-        self.databox = QtGui.QComboBox()
+        self.data_box = QtGui.QComboBox()
         for data_type in data_types:
-            self.databox.addItem(data_type)
-        self.layout.addWidget(self.databox)
+            self.data_box.addItem(data_type)
+        self.layout.addWidget(self.data_box)
 
-        self.startyearbox = QtGui.QComboBox()
+        self.start_year_box = QtGui.QComboBox()
         for year in year_names:
-            self.startyearbox.addItem(year)
-        self.layout.addWidget(self.startyearbox)
+            self.start_year_box.addItem(year)
+        self.layout.addWidget(self.start_year_box)
 
-        self.endyearbox = QtGui.QComboBox()
+        self.end_year_box = QtGui.QComboBox()
         for year in year_names:
-            self.endyearbox.addItem(year)
-        self.layout.addWidget(self.endyearbox)
+            self.end_year_box.addItem(year)
+        self.layout.addWidget(self.end_year_box)
 
-        self.removebox = QtGui.QPushButton('Remove Series')
+        self.remove_box = QtGui.QPushButton('Remove Series')
         QtCore.QObject.connect(
-            self.removebox, QtCore.SIGNAL('clicked()'), self.remove_plot)
-        self.layout.addWidget(self.removebox)
+            self.remove_box, QtCore.SIGNAL('clicked()'), self._remove_plot)
+        self.layout.addWidget(self.remove_box)
 
-    def get_series(self):
+    def _get_series(self):
         """Create a SeriesPlot object from selected data.
 
         Returns:
             series_plot: SeriesPlot object created from user-selected data.
         """
-        is_college_data = (self.databox.currentIndex() <=
+        is_college_data = (self.data_box.currentIndex() <=
             self.parent.parent.plot_settings.max_college_data_index)
         series_plot = SeriesPlot(
-            str(self.schoolbox.currentText()),
-            str(self.databox.currentText()),
-            str(self.startyearbox.currentText()),
-            str(self.endyearbox.currentText()),
+            str(self.school_box.currentText()),
+            str(self.data_box.currentText()),
+            str(self.start_year_box.currentText()),
+            str(self.end_year_box.currentText()),
             is_college_data)
         return series_plot
 
-    def remove_plot(self):
+    def _remove_plot(self):
         """Remove this SeriesOptions from the PlotConfigWindow."""
         self.parent.series_options.remove(self)
         self.deleteLater()
 
-class SeriesPlot():
+class SeriesPlot(object):
     """Stores the information about a single series to be plotted.
 
     Attributes:
@@ -479,7 +484,7 @@ class SeriesPlot():
         self.is_college = is_college
         self.data = []
 
-    def get_xy_data(self):
+    def _get_xy_data(self):
         """Generates a list of x and y coordinates to be plotted.
 
         Returns:
@@ -495,6 +500,6 @@ class SeriesPlot():
             y_data = self.data
         return (x_data, y_data)
 
-    def to_string(self):
+    def _to_string(self):
         """Convenience method to convert SeriesPlot to a string."""
         return self.college, self.data_type, self.start_year, self.end_year

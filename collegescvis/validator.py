@@ -1,14 +1,31 @@
-"""Check that Scorecard input files are properly formatted.
+"""
+validator.py
+Copyright (C) <2017>  <S. Cline>
 
-Functions:
-    check_data_types(data_types_file): Check data_types file.
-    check_raw_data(raw_data_file): Check raw data file.
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
 """
 import json
 
 
-class Validator:
-    """Class for checking data from input files."""
+class Validator(object):
+    """Checks data from input files.
+
+    The Validator class contains static methods for checking the input files
+    needed to properly run the visualizer interface. It will raise errors if
+    there is incorrect formatting that will prevent other parts of the program
+    from working.
+    """
 
     @staticmethod
     def check_data_types(data_types_file):
@@ -52,7 +69,8 @@ class Validator:
         raw_data_lines = raw_data_file.readlines()
         entries = len(raw_data_lines[0].split(','))
         for line in raw_data_lines:
-            if len(line.split(',')) != entries:
+            length = len(line.split(','))
+            if length != entries:
                 raise ValueError(
                     'Incorrect number of entries in raw data line.')
         raw_data_file.seek(0)
