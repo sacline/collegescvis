@@ -64,6 +64,7 @@ def _get_data_types(data_path):
         [ ('UNITID', 'INTEGER', 0), ('OPEID', 'TEXT', 1), ... ]
     """
     tuple_list = []
+    total_time = 0
     for input_file in data_path:
         print('Reading...', input_file)
         with open(input_file, 'r', encoding='utf-8-sig') as data_file:
@@ -87,8 +88,8 @@ def _get_data_types(data_path):
             for data_index in range(len(data_list)):
                 #Skip if the data index is already in the tuple list
                 if any(data_index == entry[2] for entry in tuple_list): continue
-                data_counts = _read_values(data_list[data_index])
-                if data_counts[0] != 0: good_indices.append(data_index)
+                if _is_good_data(data_list[data_index]):
+                    good_indices.append(data_index)
             print(
                 str(len(good_indices)) + ' data types added to list.')
             for index in good_indices:
@@ -149,25 +150,21 @@ def _validate_scorecard_entry(entry):
         if not isinstance(value, str):
             raise TypeError('Scorecard entry contains non-string value.')
 
-def _read_values(entry):
+def _is_good_data(entry):
     """Create a count of valid data within a Scorecard entry.
 
     Args:
         entry: List of Scorecard data - [Category, value1, value2, ...]
 
     Returns:
-        counts: List of counts of valid data, 'PrivacySuppressed', and 'NULL'
-            values.
+        boolean: True if there is at least one good data value in entry
     """
-    counts = [0, 0, 0]
     for value in entry[1:]:
-        if value == 'NULL':
-            counts[2] += 1
-        elif value == 'PrivacySuppressed':
-            counts[1] += 1
+        if value in ('NULL', 'PrivacySuppressed'):
+            continue
         else:
-            counts[0] += 1
-    return counts
+            return True
+    return False
 
 def _find_type(entry):
     """Return a data type based on the entry.
