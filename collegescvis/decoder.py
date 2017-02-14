@@ -64,7 +64,6 @@ def _get_data_types(data_path):
         [ ('UNITID', 'INTEGER', 0), ('OPEID', 'TEXT', 1), ... ]
     """
     tuple_list = []
-    total_time = 0
     for input_file in data_path:
         print('Reading...', input_file)
         with open(input_file, 'r', encoding='utf-8-sig') as data_file:
