@@ -5,7 +5,7 @@
 Python application for plotting and visualizing [College Scorecard](https://collegescorecard.ed.gov) data.
 
 ### Current features
-* A [PyQt] (https://riverbankcomputing.com/software/pyqt/intro) interface using [Matplotlib] (matplotlib.org) to plot user-specified Scorecard data.
+* A [PyQt](https://riverbankcomputing.com/software/pyqt/intro) interface using [Matplotlib](matplotlib.org) to plot user-specified Scorecard data.
 * Plots designed to easily compare different data types from different colleges over a range of years.
 * Ability to export plotted data in JSON format.
 * An sqlite3 database built from raw data is used to generate the plots.
@@ -28,6 +28,6 @@ Please let me know if you have any trouble running the program, as well as the v
 3. Use the interface to plot data.
 
 ## Example
-Below is a screenshot of an example plot:
+Below is a screenshot of a plot displaying admission rates for two Texas universities from 2001-2014:
 
 ![Example](https://github.com/sacline/collegescvis/blob/test/example.png)
